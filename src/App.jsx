@@ -3,8 +3,8 @@ import * as React from "react";
 const App = () => {
   console.log('App renders');
   
-  // Move stories to App component
-  const stories = [
+  // 7. Rename variable "stories" to "initialStories"
+  const initialStories = [
     {
       title: "React",
       url: "https://reactjs.org/",
@@ -23,20 +23,30 @@ const App = () => {
     },
   ];
 
-  // 7. Use stored value from localStorage to set initial state
+  // Use stored value from localStorage to set initial state
   const [searchTerm, setSearchTerm] = React.useState(
     localStorage.getItem('search') || ''
   );
 
-  // 8. Use React's useEffect Hook to trigger side-effect when searchTerm changes
+  // 8. Define useState hook using initialStories as initial state
+  const [stories, setStories] = React.useState(initialStories);
+
+  // useEffect Hook to trigger side-effect when searchTerm changes
   React.useEffect(() => {
-    // 6. Store searchTerm in localStorage whenever it changes
     localStorage.setItem('search', searchTerm);
   }, [searchTerm]);
 
-  // Callback handler in App component
+  // Generic callback handler for input
   const handleSearch = (event) => {
     setSearchTerm(event.target.value);
+  };
+
+  // 9. Event handler which removes an item from the list
+  const handleRemoveStory = (item) => {
+    const newStories = stories.filter(
+      (story) => item.objectID !== story.objectID
+    );
+    setStories(newStories);
   };
 
   // Filter stories with searchTerm (case-insensitive)
@@ -48,52 +58,67 @@ const App = () => {
     <div>
       <h1>My Hacker Stories</h1>
       
-      {/* 1. Provide Search component with current state of searchTerm */}
-      <Search search={searchTerm} onSearch={handleSearch} />
+      {/* 1. Generalized Search component with dynamic props */}
+      {/* 3. Component composition with opening and closing tags */}
+      {/* 5. Render <strong>Search:</strong> within InputWithLabel */}
+      <InputWithLabel
+        id="search"
+        value={searchTerm}
+        type="text"
+        onInputChange={handleSearch}
+      >
+        <strong>Search:</strong>
+      </InputWithLabel>
       
       {/* Show current search term in UI */}
       <p>Searching for <strong>{searchTerm}</strong>.</p>
       
       <hr />
       
-      {/* Pass filtered stories to List component */}
-      <List list={searchedStories} />
+      {/* 9. Pass callback handler to List component */}
+      <List list={searchedStories} onRemoveItem={handleRemoveStory} />
     </div>
   );
 };
 
-// 3. Refactor Search component with props destructuring
-const Search = ({ search, onSearch }) => {
-  console.log('Search renders');
+// 1. Generalized component with dynamic id, label, and generic naming
+// 2. Add "type" attribute to InputWithLabel component
+// 4. Use children prop instead of label prop
+const InputWithLabel = ({ id, value, type = 'text', onInputChange, children }) => {
+  console.log('InputWithLabel renders');
   
   return (
     <div>
-      <label htmlFor="search">Search: </label>
+      <label htmlFor={id}>{children}</label>
       <input 
-        id="search" 
-        type="text" 
-        value={search}
-        onChange={onSearch}
+        id={id}
+        type={type}
+        value={value}
+        onChange={onInputChange}
       />
     </div>
   );
 };
 
-// 4. Refactor List component with props destructuring
-const List = ({ list }) => {
+// 10. Pass callback handler to Item component as prop
+const List = ({ list, onRemoveItem }) => {
   console.log('List renders');
   
   return (
     <ul>
       {list.map((item) => (
-        <Item key={item.objectID} item={item} />
+        <Item 
+          key={item.objectID} 
+          item={item} 
+          onRemoveItem={onRemoveItem}
+        />
       ))}
     </ul>
   );
 };
 
-// 4. Refactor Item component with props destructuring
-const Item = ({ item }) => {
+// 11. Add delete button with inline handler
+const Item = ({ item, onRemoveItem }) => {
   console.log('Item renders');
   
   return (
@@ -104,6 +129,12 @@ const Item = ({ item }) => {
       <span>{item.author}</span>
       <span>{item.num_comments}</span>
       <span>{item.points}</span>
+      <span>
+        {/* 11. Inline handler for onClick event using callback handler */}
+        <button type="button" onClick={() => onRemoveItem(item)}>
+          Dismiss
+        </button>
+      </span>
     </li>
   );
 };
