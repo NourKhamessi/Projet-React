@@ -19,33 +19,44 @@ const list = [
   },
 ];
 
-function App() {
+// 4. Search component with block body
+const Search = () => {
+  // 5. Handler function for the Search component
+  const handleChange = (event) => {
+    console.log(event.target.value);
+  };
+
+  return (
+    <div>
+      <label htmlFor="search">Search: </label>
+      <input id="search" type="text" onChange={handleChange} />
+    </div>
+  );
+};
+
+// 1. Refactored component function to arrow function
+const App = () => {
   return (
     <div>
       <h1>My Hacker Stories</h1>
-      <label htmlFor="search">Search: </label>
-      <input id="search" type="text" />
+      <Search />
       <hr />
       <ul>
-        {list.map(function (item) {
-          return (
-            <li key={item.objectID}>
-              <span>
-                <a href={item.url}>{item.title}</a>
-              </span>
-              <span>{item.author}</span>
-              <span>{item.num_comments}</span>
-              <span>{item.points}</span>
-            </li>
-          );
-        })}
+        {/* 2. Refactored callback function to arrow function */}
+        {/* 3. Refactored to concise body */}
+        {list.map((item) => (
+          <li key={item.objectID}>
+            <span>
+              <a href={item.url}>{item.title}</a>
+            </span>
+            <span>{item.author}</span>
+            <span>{item.num_comments}</span>
+            <span>{item.points}</span>
+          </li>
+        ))}
       </ul>
     </div>
   );
-}
-
-
+};
 
 export default App;
-
-
