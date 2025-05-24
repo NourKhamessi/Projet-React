@@ -1,9 +1,12 @@
 import * as React from "react";
 
+// 1. Define API endpoint as global variable
+const API_ENDPOINT = "https://hn.algolia.com/api/v1/search?query=";
+
 const App = () => {
   console.log('App renders');
   
-  // 7. Rename variable "stories" to "initialStories"
+  // Remove initialStories as we'll fetch from API
   const initialStories = [
     {
       title: "React",
@@ -25,23 +28,60 @@ const App = () => {
 
   // Use stored value from localStorage to set initial state
   const [searchTerm, setSearchTerm] = React.useState(
-    localStorage.getItem('search') || ''
+    localStorage.getItem('search') || 'React'
   );
 
-  // 8. Define useState hook using initialStories as initial state
-  const [stories, setStories] = React.useState(initialStories);
+  // useState hook using initialStories as initial state
+  const [stories, setStories] = React.useState([]);
 
-  // useEffect Hook to trigger side-effect when searchTerm changes
+  // 9. Loading indicator state
+  const [isLoading, setIsLoading] = React.useState(false);
+
+  // 11. Error handling state
+  const [isError, setIsError] = React.useState(false);
+
+  // 16. Add new state to manage URL
+  const [url, setUrl] = React.useState(`${API_ENDPOINT}${searchTerm}`);
+
+  // useEffect Hook to save searchTerm to localStorage
   React.useEffect(() => {
     localStorage.setItem('search', searchTerm);
   }, [searchTerm]);
+
+  // 2-5, 9, 11, 17. useEffect for fetching external data
+  React.useEffect(() => {
+    // Reset error state
+    setIsError(false);
+    // 9. Set loading to true before fetching
+    setIsLoading(true);
+    
+    // 3-5. Fetch data from API
+    fetch(url)
+      .then((response) => response.json()) // 4. Parse JSON response
+      .then((result) => {
+        // 5. Update stories state with API data
+        setStories(result.hits);
+        // 9. Set loading to false when data received
+        setIsLoading(false);
+      })
+      .catch(() => {
+        // 11. Handle error - set error to true and loading to false
+        setIsError(true);
+        setIsLoading(false);
+      });
+  }, [url]); // 17. Change dependency to url instead of searchTerm
 
   // Generic callback handler for input
   const handleSearch = (event) => {
     setSearchTerm(event.target.value);
   };
 
-  // 9. Event handler which removes an item from the list
+  // 16. Button handler to set URL from current searchTerm
+  const handleSearchSubmit = () => {
+    setUrl(`${API_ENDPOINT}${searchTerm}`);
+  };
+
+  // Event handler which removes an item from the list
   const handleRemoveStory = (item) => {
     const newStories = stories.filter(
       (story) => item.objectID !== story.objectID
@@ -49,18 +89,11 @@ const App = () => {
     setStories(newStories);
   };
 
-  // Filter stories with searchTerm (case-insensitive)
-  const searchedStories = stories.filter((story) =>
-    story.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   return (
     <div>
       <h1>My Hacker Stories</h1>
       
-      {/* 1. Generalized Search component with dynamic props */}
-      {/* 3. Component composition with opening and closing tags */}
-      {/* 5. Render <strong>Search:</strong> within InputWithLabel */}
+      {/* Generalized Search component with dynamic props */}
       <InputWithLabel
         id="search"
         value={searchTerm}
@@ -69,21 +102,36 @@ const App = () => {
       >
         <strong>Search:</strong>
       </InputWithLabel>
+
+      {/* 15. Add button for confirmation */}
+      <button
+        type="button"
+        disabled={!searchTerm}
+        onClick={handleSearchSubmit}
+      >
+        Submit
+      </button>
       
       {/* Show current search term in UI */}
       <p>Searching for <strong>{searchTerm}</strong>.</p>
       
       <hr />
       
-      {/* 9. Pass callback handler to List component */}
-      <List list={searchedStories} onRemoveItem={handleRemoveStory} />
+      {/* 12. Error handling with logical AND operator */}
+      {isError && <p>Something went wrong ...</p>}
+      
+      {/* 10. Conditional rendering for loading indicator */}
+      {isLoading ? (
+        <p>Loading ...</p>
+      ) : (
+        /* 6. Pass only regular stories (no more searchedStories) */
+        <List list={stories} onRemoveItem={handleRemoveStory} />
+      )}
     </div>
   );
 };
 
-// 1. Generalized component with dynamic id, label, and generic naming
-// 2. Add "type" attribute to InputWithLabel component
-// 4. Use children prop instead of label prop
+// Generalized component with dynamic id, label, and generic naming
 const InputWithLabel = ({ id, value, type = 'text', onInputChange, children }) => {
   console.log('InputWithLabel renders');
   
@@ -100,7 +148,7 @@ const InputWithLabel = ({ id, value, type = 'text', onInputChange, children }) =
   );
 };
 
-// 10. Pass callback handler to Item component as prop
+// Pass callback handler to Item component as prop
 const List = ({ list, onRemoveItem }) => {
   console.log('List renders');
   
@@ -117,7 +165,7 @@ const List = ({ list, onRemoveItem }) => {
   );
 };
 
-// 11. Add delete button with inline handler
+// Add delete button with inline handler
 const Item = ({ item, onRemoveItem }) => {
   console.log('Item renders');
   
@@ -130,7 +178,7 @@ const Item = ({ item, onRemoveItem }) => {
       <span>{item.num_comments}</span>
       <span>{item.points}</span>
       <span>
-        {/* 11. Inline handler for onClick event using callback handler */}
+        {/* Inline handler for onClick event using callback handler */}
         <button type="button" onClick={() => onRemoveItem(item)}>
           Dismiss
         </button>
