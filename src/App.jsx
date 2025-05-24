@@ -1,11 +1,9 @@
 import * as React from "react";
 
-// 10. Callback Handler in App component (moved up for reference)
-// 6. React useState Hook for searchTerm
 const App = () => {
   console.log('App renders');
   
-  // 1. Move the list from global scope into App component
+  // Move stories to App component
   const stories = [
     {
       title: "React",
@@ -25,18 +23,23 @@ const App = () => {
     },
   ];
 
-  // 6. Define React useState Hook for the searchTerm
-  // 13. Lift state up from Search to App component
-  const [searchTerm, setSearchTerm] = React.useState('');
+  // 7. Use stored value from localStorage to set initial state
+  const [searchTerm, setSearchTerm] = React.useState(
+    localStorage.getItem('search') || ''
+  );
 
-  // 10. Define a callback Handler in the App component
+  // 8. Use React's useEffect Hook to trigger side-effect when searchTerm changes
+  React.useEffect(() => {
+    // 6. Store searchTerm in localStorage whenever it changes
+    localStorage.setItem('search', searchTerm);
+  }, [searchTerm]);
+
+  // Callback handler in App component
   const handleSearch = (event) => {
-    // 7. Update the searchTerm state inside the handler
     setSearchTerm(event.target.value);
   };
 
-  // 14. Filter the stories with the stateful searchTerm
-  // 15. Lower case the story's title and the searchTerm to make them equal
+  // Filter stories with searchTerm (case-insensitive)
   const searchedStories = stories.filter((story) =>
     story.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -45,23 +48,21 @@ const App = () => {
     <div>
       <h1>My Hacker Stories</h1>
       
-      {/* 11. Use callback handler from props in Search Component */}
-      {/* 13. Pass searchTerm and handler as props */}
+      {/* 1. Provide Search component with current state of searchTerm */}
       <Search search={searchTerm} onSearch={handleSearch} />
       
-      {/* 7. Show searchTerm in UI */}
+      {/* Show current search term in UI */}
       <p>Searching for <strong>{searchTerm}</strong>.</p>
       
       <hr />
       
-      {/* 2. Use React props to pass the list of items to List component */}
-      {/* 14. Pass filtered stories instead of all stories */}
+      {/* Pass filtered stories to List component */}
       <List list={searchedStories} />
     </div>
   );
 };
 
-// 13. Updated Search component to use props instead of local state
+// 3. Refactor Search component with props destructuring
 const Search = ({ search, onSearch }) => {
   console.log('Search renders');
   
@@ -78,13 +79,12 @@ const Search = ({ search, onSearch }) => {
   );
 };
 
-// 3. Access list property from props object in List component
+// 4. Refactor List component with props destructuring
 const List = ({ list }) => {
   console.log('List renders');
   
   return (
     <ul>
-      {/* 4. Pass each item to Item component */}
       {list.map((item) => (
         <Item key={item.objectID} item={item} />
       ))}
@@ -92,7 +92,7 @@ const List = ({ list }) => {
   );
 };
 
-// 4. Item component extraction
+// 4. Refactor Item component with props destructuring
 const Item = ({ item }) => {
   console.log('Item renders');
   
